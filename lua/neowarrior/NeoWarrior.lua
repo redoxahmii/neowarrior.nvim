@@ -1423,6 +1423,24 @@ function NeoWarrior:sort_select()
   self:close_floats()
 
   local sort_options = self.config.task_sort_options or {}
+  local i = Input:new("Select task sort order")
+  i:select(sort_options, function(input)
+    if input then
+      self.current_sort = input.key
+      self.current_sort_direction = input.direction or "desc"
+      self:refresh()
+      self:list()
+      self.buffer:restore_cursor()
+    end
+  end, {
+    entry_maker = function(entry)
+      return {
+        value = entry,
+        display = entry.name,
+        ordinal = entry.name,
+      }
+    end,
+  })
   -- local telescope_opts = require("telescope.themes").get_dropdown({})
 
   -- pickers.new(telescope_opts, {
@@ -1961,27 +1979,14 @@ end
 function NeoWarrior:report_select()
   self.buffer:save_cursor()
   self:close_floats()
-  -- local opts = require("telescope.themes").get_dropdown({})
-  -- pickers
-  -- .new(opts, {
-  --   prompt_title = "Select report",
-  --   finder = finders.new_table({
-  --     results = self.config.reports,
-  --   }),
-  --   sorter = conf.generic_sorter(opts),
-  --   attach_mappings = function(prompt_bufnr)
-  --     actions.select_default:replace(function()
-  --       actions.close(prompt_bufnr)
-  --       local selection = action_state.get_selected_entry()
-  --       self.current_report = selection[1]
-  --       self:refresh()
-  --       self:list()
-  --       self.buffer:restore_cursor()
-  --     end)
-  --     return true
-  --   end,
-  -- })
-  -- :find()
+  local i = Input:new("Select report: ")
+  i:select(self.config.reports, function(input)
+    if input then
+      self.current_report = input
+      self:refresh()
+      self:list()
+    end
+  end)
 end
 
 --- Set filter, refresh and show list
