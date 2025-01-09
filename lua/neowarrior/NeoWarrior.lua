@@ -88,7 +88,7 @@ function NeoWarrior:new()
     setmetatable(neowarrior, self)
     self.__index = self
 
-    neowarrior.version = "v0.4.3"
+    neowarrior.version = "v0.5.0-alpha1"
     neowarrior.config = nil
     neowarrior.user_config = nil
     neowarrior.buffer = nil
