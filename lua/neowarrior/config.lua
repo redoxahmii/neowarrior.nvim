@@ -4,10 +4,10 @@ return {
   ---@type boolean
   dev = false,
 
+  ---@type table UI config
   ui = {
-
-    select = "native";
-
+    ---@type "telescope"|"vim" Select UI to use for selects. NOTE: This will be set to "vim" as default in the future.
+    select = "telescope",
   },
 
   ---@type table Task line config

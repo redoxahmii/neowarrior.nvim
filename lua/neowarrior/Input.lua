@@ -35,7 +35,7 @@ function Input:_telescope_picker(prompt, items, callback, opts)
   local conf = nil
   local actions = nil
   local action_state = nil
-  local entry_maker = opts and opts.telescope_entry_maker or nil
+  local entry_maker = opts and opts.entry_maker or nil
 
   if _Neowarrior.telescope then
 

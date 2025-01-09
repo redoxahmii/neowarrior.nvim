@@ -192,7 +192,7 @@ end
 ---@return NeoWarrior
 function NeoWarrior:setup(config)
 
-  self.user_config = config
+  self.user_config = config or {}
   self.config = vim.tbl_deep_extend(
     "force",
     default_config,
@@ -1147,56 +1147,16 @@ function NeoWarrior:set_keymaps()
     vim.keymap.set("n", self.config.keys.search, function()
       self:close_floats()
       self.buffer:save_cursor()
-      -- local telescope_opts = require("telescope.themes").get_dropdown({})
-      -- local icons = _Neowarrior.config.icons
-      -- pickers.new(telescope_opts, {
-      --   prompt_title = "Search tasks",
-      --   finder = finders.new_table({
-      --     results = self.all_tasks:get(),
-      --     entry_maker = function(entry)
-      --
-      --       local task_line = ""
-      --       local status_ordinal = 0
-      --
-      --       if entry.status ~= 'pending' then
-      --         local status_icon = ""
-      --         if entry.status == "completed" then
-      --           status_icon = icons.task_completed .. " "
-      --         end
-      --         if entry.status == "deleted" then
-      --           status_icon = icons.deleted .. " "
-      --         end
-      --         task_line = task_line .. "[" .. status_icon .. entry.status .. "] "
-      --       end
-      --
-      --       task_line = task_line .. entry.description
-      --
-      --       if entry.status == 'completed' then status_ordinal = 100 end
-      --       if entry.status == 'deleted' then status_ordinal = 1000 end
-      --
-      --       task_line = task_line .. " (" .. icons.project .. " " .. entry.project .. ")"
-      --
-      --       return {
-      --         value = entry.uuid,
-      --         display = task_line,
-      --         ordinal = status_ordinal .. entry.description .. entry.project,
-      --       }
-      --
-      --     end,
-      --   }),
-      --   sorter = conf.generic_sorter(telescope_opts),
-      --   attach_mappings = function(prompt_bufnr)
-      --     actions.select_default:replace(function()
-      --       actions.close(prompt_bufnr)
-      --       local selection = action_state.get_selected_entry()
-      --       if selection and selection.value then
-      --         self:task(selection.value)
-      --       end
-      --     end)
-      --     return true
-      --   end,
-      -- })
-      -- :find()
+
+      local i = Input:new("Search tasks: ")
+      i:text("", function(input)
+        if input then
+          self.current_filter = "description~" .. input .. " rc.search.case.sensitive=off"
+          self.current_report = "list"
+          self:refresh()
+          self:list()
+        end
+      end)
     end, default_keymap_opts)
   end
 
@@ -1213,42 +1173,26 @@ function NeoWarrior:set_keymaps()
       end
       if uuid then
         local task = self.tw:task(uuid)
-        -- local telescope_opts = require("telescope.themes").get_dropdown({})
-        -- pickers
-        -- .new(telescope_opts, {
-        --   prompt_title = "Set task project",
-        --   finder = finders.new_table({
-        --     results = self.all_projects:get(),
-        --     entry_maker = function(entry)
-        --       return {
-        --         value = entry.id,
-        --         display = entry.id,
-        --         ordinal = entry.id,
-        --       }
-        --     end,
-        --   }),
-        --   sorter = conf.generic_sorter(telescope_opts),
-        --   attach_mappings = function(prompt_bufnr)
-        --     actions.select_default:replace(function()
-        --       local prompt = action_state.get_current_picker(prompt_bufnr):_get_prompt()
-        --       actions.close(prompt_bufnr)
-        --       local selection = action_state.get_selected_entry()
-        --       local mod_project = prompt
-        --       if selection and selection.value then
-        --         mod_project = selection.value
-        --       end
-        --       self.tw:modify(task, "project:" .. mod_project)
-        --       self:refresh()
-        --       if self.current_task then
-        --         self:task(self.current_task.uuid)
-        --       else
-        --         self:list()
-        --       end
-        --     end)
-        --     return true
-        --   end,
-        -- })
-        -- :find()
+        local i = Input:new("Set task project: ")
+        i:select(self.all_projects:get(), function(input)
+          if input then
+            self.tw:modify(task, "project:" .. input)
+            self:refresh()
+            if self.current_task then
+              self:task(self.current_task.uuid)
+            else
+              self:list()
+            end
+          end
+        end, {
+          entry_maker = function(entry)
+            return {
+              value = entry.id,
+              display = entry.id,
+              ordinal = entry.id,
+            }
+          end,
+        })
       end
     end, default_keymap_opts)
   end
@@ -1441,35 +1385,6 @@ function NeoWarrior:sort_select()
       }
     end,
   })
-  -- local telescope_opts = require("telescope.themes").get_dropdown({})
-
-  -- pickers.new(telescope_opts, {
-  --   prompt_title = "Select task sort order",
-  --   finder = finders.new_table({
-  --     results = sort_options,
-  --     entry_maker = function(entry)
-  --       return {
-  --         value = entry,
-  --         display = entry.name,
-  --         ordinal = entry.name,
-  --       }
-  --     end,
-  --   }),
-  --   sorter = conf.generic_sorter(telescope_opts),
-  --   attach_mappings = function(prompt_bufnr)
-  --     actions.select_default:replace(function()
-  --       actions.close(prompt_bufnr)
-  --       local selection = action_state.get_selected_entry()
-  --       self.current_sort = selection.value.key
-  --       self.current_sort_direction = selection.value.direction or "desc"
-  --       self:refresh()
-  --       self:list()
-  --       self.buffer:restore_cursor()
-  --     end)
-  --     return true
-  --   end,
-  -- })
-  -- :find()
 end
 
 --- Start/stop task
@@ -1892,7 +1807,7 @@ function NeoWarrior:filter()
   end)
 end
 
---- Open telescope filter selection
+--- Open filter selection
 function NeoWarrior:filter_select()
 
   self.buffer:save_cursor()
@@ -1915,13 +1830,12 @@ function NeoWarrior:filter_select()
   local i = Input:new("Select filter: ")
   i:select(filters, function(input)
     if input then
-      self.current_filter = input
+      self.current_filter = input.filter
       self:refresh()
       self:list()
     end
   end, {
-    entry_maker = function(entry) return entry.filter end,
-    telescope_entry_maker = function(entry)
+    entry_maker = function(entry)
       if type(entry) ~= "table" then
         entry = {
           name = entry,
@@ -1936,44 +1850,6 @@ function NeoWarrior:filter_select()
       }
     end,
   })
-
-  -- local opts = require("telescope.themes").get_dropdown({})
-  -- pickers.new(opts, {
-  --   prompt_title = "Filter",
-  --   attach_mappings = function(prompt_bufnr)
-  --     actions.select_default:replace(function()
-  --       local prompt = action_state.get_current_picker(prompt_bufnr):_get_prompt()
-  --       actions.close(prompt_bufnr)
-  --       local selection = action_state.get_selected_entry()
-  --       local new_filter = prompt
-  --       local current_sort = self.current_sort
-  --       local current_sort_direction = self.current_sort_direction
-  --       if selection and selection.value then
-  --
-  --         new_filter = selection.value.filter
-  --
-  --         if selection.value.sort then
-  --           self.current_sort = selection.value.sort
-  --         else
-  --           self.current_sort = current_sort
-  --         end
-  --
-  --         if selection.value.sort_order then
-  --           self.current_sort_direction = selection.value.sort_order
-  --         else
-  --           self.current_sort_direction = current_sort_direction
-  --         end
-  --
-  --       end
-  --       self.current_filter = new_filter
-  --       self:refresh()
-  --       self:list()
-  --       self.buffer:restore_cursor()
-  --     end)
-  --     return true
-  --   end,
-  -- })
-  -- :find()
 end
 
 function NeoWarrior:report_select()
@@ -2032,34 +1908,22 @@ function NeoWarrior:dependency_select()
   end
 
   task = self.tw:task(uuid)
-  -- local telescope_opts = require("telescope.themes").get_dropdown({})
-  -- pickers.new(telescope_opts, {
-  --   prompt_title = "Select dependency",
-  --   finder = finders.new_table({
-  --     results = self.all_pending_tasks:get(),
-  --     entry_maker = function(entry)
-  --       return {
-  --         value = entry,
-  --         display = entry.description .. " - " .. entry.urgency,
-  --         ordinal = entry.description,
-  --       }
-  --     end,
-  --   }),
-  --   sorter = conf.generic_sorter(telescope_opts),
-  --   attach_mappings = function(prompt_bufnr)
-  --     actions.select_default:replace(function()
-  --       actions.close(prompt_bufnr)
-  --       local selection = action_state.get_selected_entry()
-  --       if task then
-  --         self.tw:add_dependency(task, selection.value.uuid)
-  --         self:refresh()
-  --         self:list()
-  --       end
-  --     end)
-  --     return true
-  --   end,
-  -- })
-  -- :find()
+  local i = Input:new("Select dependency: ")
+  i:select(self.all_pending_tasks:get(), function(input)
+    if input then
+      self.tw:add_dependency(task, input.uuid)
+      self:refresh()
+      self:task(task.uuid)
+    end
+  end, {
+    entry_maker = function(entry)
+      return {
+        value = entry,
+        display = entry.description .. " - " .. entry.urgency,
+        ordinal = entry.description,
+      }
+    end,
+  })
 
   return self
 end

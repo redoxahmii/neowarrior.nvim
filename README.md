@@ -8,10 +8,12 @@ A simple taskwarrior plugin for NeoVim. Made this mostly for my self to have as 
 - [Neovim >=0.10.0](https://github.com/neovim/neovim/releases/tag/v0.10.0)
 - [Taskwarrior](https://taskwarrior.org/)
 
-## Optional
+## Optional and/or recommended
 
 - A nerd font is highly recommended for the icons. Se config for setting custom icons.
 - [folke/noice.nvim](https://github.com/folke/noice.nvim) for a nice cmdline UI.
+- [ibhagwan/fzf-lua](https://github.com/ibhagwan/fzf-lua) for a easier select experience (see [https://github.com/ibhagwan/fzf-lua/blob/main/OPTIONS.md#neovim-api](https://github.com/ibhagwan/fzf-lua/blob/main/OPTIONS.md#neovim-api))
+  - Alternatively [nvim-telescope/telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
 
 # Features
 
@@ -35,14 +37,9 @@ A simple taskwarrior plugin for NeoVim. Made this mostly for my self to have as 
 
 ```lua
 return {
-  'duckdm/neowarrior.nvim',
-  dependencies = {
-    'nvim-telescope/telescope.nvim',
-    --- Optional but recommended for nicer inputs
-    --- 'folke/noice.nvim',
-  },
-  --- See config example below
-  opts = {}
+    'duckdm/neowarrior.nvim',
+    event = 'VeryLazy',
+    opts = {}, --- Se config below
 }
 ```
 
@@ -51,12 +48,6 @@ return {
 ```lua
 {
   'duckdm/neowarrior.nvim',
-  event = 'VeryLazy',
-  dependencies = {
-    'nvim-telescope/telescope.nvim',
-    --- Optional but recommended for nicer inputs
-    --- 'folke/noice.nvim',
-  },
   config = function()
 
     local nw = require('neowarrior')
@@ -157,6 +148,12 @@ require('neowarrior').focus()
 # Default config values
 ```lua
 {
+  ---@type table UI config
+  ui = {
+    ---@type "telescope"|"vim" Select UI to use for selects. NOTE: This will be set to "vim" as default in the future.
+    select = "telescope",
+  },
+
   ---@type table Task line config
   --- Note: Using more than one of these on the right currently causes some
   --- visual issues, the leftmost value's color will be used for the entire right
@@ -253,7 +250,7 @@ require('neowarrior').focus()
   ---@type string Default taskwarrior report
   report = "next",
 
-  ---@type "normal"|"grouped"|"tree" Default view mode
+  ---@type "normal"|"grouped"|"tree"|"agenda" Default view mode
   mode = "normal",
 
   ---@type string Default sort option
@@ -462,6 +459,7 @@ require('neowarrior').focus()
   keys = {
     help = '?', --- Show help
     add = 'a', --- Add task
+    delete = 'x', --- Delete task
     done = 'd', --- Mark task as done
     start = 'S', --- Start task
     select_dependency = 'Md', --- Select dependency
