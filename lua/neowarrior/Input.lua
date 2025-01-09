@@ -72,10 +72,21 @@ end
 function Input:_vim_picker(prompt, items, callback, opts)
   local entry_maker = opts and opts.entry_maker or nil
   local i = {}
+  local em_values = {}
+  local is_table = false
 
   if entry_maker then
     for _, item in ipairs(items) do
-      table.insert(i, entry_maker(item))
+      local em = entry_maker(item)
+
+      if type(em) == "table" then
+        is_table = true
+        em_values[em.display] = em.value
+        table.insert(i, em.display)
+      else
+        table.insert(i, em)
+      end
+
     end
   else
     i = items
@@ -84,6 +95,9 @@ function Input:_vim_picker(prompt, items, callback, opts)
   vim.ui.select(i, {
     prompt = prompt,
   }, function(selection)
+    if is_table and em_values and em_values[selection] then
+      selection = em_values[selection]
+    end
     callback(selection)
   end)
 end
