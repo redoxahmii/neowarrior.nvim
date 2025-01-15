@@ -5,8 +5,10 @@ Colors.set = function(config_colors)
   for _, color in pairs(config_colors) do
     if color.fg and color.bg then
       vim.cmd("highlight " .. color.group .. " guifg=" .. color.fg .. " guibg=" .. color.bg)
+      vim.cmd("autocmd ColorScheme * highlight " .. color.group .. " guifg=" .. color.fg .. " guibg=" .. color.bg)
     elseif color.fg then
       vim.cmd("highlight " .. color.group .. " guifg=" .. color.fg)
+      vim.cmd("autocmd ColorScheme * highlight " .. color.group .. " guifg=" .. color.fg)
     end
   end
 
