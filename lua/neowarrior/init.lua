@@ -7,7 +7,7 @@ local M = {}
 ---@param opts table
 M.setup = function(opts)
 
-  _Neowarrior:setup(opts)
+  _Neowarrior:setup(opts or {})
   _Neowarrior:init()
 
 end

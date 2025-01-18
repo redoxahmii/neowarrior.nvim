@@ -4,6 +4,12 @@ return {
   ---@type boolean
   dev = false,
 
+  ---@type table UI config
+  ui = {
+    ---@type "telescope"|"vim" Select UI to use for selects. NOTE: This will be set to "vim" as default in the future.
+    select = "telescope",
+  },
+
   ---@type table Task line config
   --- Note: Using more than one of these on the right currently causes some
   --- visual issues, the leftmost value's color will be used for the entire right
@@ -256,8 +262,8 @@ return {
   ---in selects.
   reports = {
     "active", "all", "blocked", "blocking", "completed", "list", "long",
-    "ls", "minimal", "newest", "next", "oldest", "overdue", "projects",
-    "ready", "recurring", "summary", "tags", "unblocked", "waiting",
+    "ls", "minimal", "newest", "next", "oldest", "overdue",
+    "ready", "recurring", "unblocked", "waiting",
   },
 
   ---@type string[]|table[] Default filters available (valid taskwarrior filters). Used
@@ -309,6 +315,7 @@ return {
   keys = {
     help = '?', --- Show help
     add = 'a', --- Add task
+    delete = 'x', --- Delete task
     done = 'd', --- Mark task as done
     start = 'S', --- Start task
     select_dependency = 'Md', --- Select dependency
